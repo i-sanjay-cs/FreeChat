@@ -1,6 +1,5 @@
 from flask import Flask, render_template, request, redirect, url_for
 from flask_socketio import SocketIO, join_room, emit
-from gevent import monkey
 
 
 app = Flask(__name__)
@@ -57,6 +56,7 @@ def handle_disconnect():
         emit('chat', {'message': 'A user has left the chat', 'name': 'System'}, room=code)
 
 if __name__ == '__main__':
+    from gevent import monkey
     monkey.patch_all()
 
     from gunicorn import pywsgi
