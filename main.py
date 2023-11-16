@@ -1,14 +1,13 @@
 from flask import Flask, render_template, request, redirect, url_for
 from flask_socketio import SocketIO, join_room, emit
 
-
 app = Flask(__name__)
-socketio = SocketIO(app, async_mode="gevent")  # Set async_mode to "gevent" for Gunicorn
+socketio = SocketIO(app, async_mode="gevent")  # Set async_mode to "gevent" for Uvicorn
 rooms = {}  # Dictionary to store room information
 
 @app.route('/')
 def index():
-    return render_template('index.html')
+    return render_template('index.html')  # Remove 'templates/' prefix
 
 @app.route('/main', methods=['GET', 'POST'])
 def main():
@@ -17,11 +16,11 @@ def main():
         code = request.form['code']
         return redirect(url_for('chat', name=name, code=code))
 
-    return render_template('index.html')
+    return render_template('index.html')  # Remove 'templates/' prefix
 
 @app.route('/chat')
 def chat():
-    return render_template('chat.html')
+    return render_template('chat.html')  # Remove 'templates/' prefix
 
 @socketio.on('join')
 def handle_join(data):
@@ -56,11 +55,5 @@ def handle_disconnect():
         emit('chat', {'message': 'A user has left the chat', 'name': 'System'}, room=code)
 
 if __name__ == '__main__':
-    from gevent import monkey
-    monkey.patch_all()
-
-    from gunicorn import pywsgi
-
-    # Assuming your SocketIO instance is named socketio and your Flask app is named app
-    gunicorn_app = pywsgi.WSGIServer(('0.0.0.0', 5000), app, handler_class=socketio.server.GeventWebSocketHandler)
-    gunicorn_app.serve_forever()
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=5000)
