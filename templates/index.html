@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FreeChat</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Arial', sans-serif;
+            background: url('https://png.pngtree.com/background/20210709/original/pngtree-color-creative-summer-tourism-picture-image_917189.jpg') center/cover no-repeat;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #main {
+            background-color: rgba(255, 255, 255, 0.8);
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        h2 {
+            color: #333;
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        label {
+            margin-bottom: 8px;
+            font-size: 16px;
+            color: #333;
+        }
+
+        input {
+            padding: 8px;
+            margin-bottom: 16px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        button {
+            padding: 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        p {
+            color: red;
+        }
+    </style>
+</head>
+<body>
+    <div id="main">
+        <h2>Welcome to FreeChat</h2>
+        {% if error %}
+            <p>{{ error }}</p>
+        {% endif %}
+        <form id="joinForm">
+            <label for="nameInput">Enter your name:</label>
+            <input type="text" id="nameInput" required>
+            <label for="codeInput">Enter the code:</label>
+            <input type="text" id="codeInput" required>
+            <button type="button" onclick="joinChat()">Join Chat</button>
+        </form>
+    </div>
+    <script>
+        const socket = io();
+
+        function joinChat() {
+            const name = document.getElementById('nameInput').value;
+            const code = document.getElementById('codeInput').value;
+            socket.emit('join', { name, code });
+
+            // Redirect to the chat page with query parameters
+            window.location.href = `/chat?name=${encodeURIComponent(name)}&code=${encodeURIComponent(code)}`;
+        }
+    </script>
+</body>
+</html>
