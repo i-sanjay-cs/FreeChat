@@ -1,8 +1,10 @@
 from flask import Flask, render_template, request, redirect, url_for
 from flask_socketio import SocketIO, join_room, emit
+from gevent import monkey
+
 
 app = Flask(__name__)
-socketio = SocketIO(app)
+socketio = SocketIO(app, async_mode="gevent")  # Set async_mode to "gevent" for Gunicorn
 rooms = {}  # Dictionary to store room information
 
 @app.route('/')
@@ -30,7 +32,7 @@ def handle_join(data):
     print(f"Join request received: {name}, {code}")
 
     join_room(code)  # Use join_room to add the user to the room
-    rooms[request.sid] = code  # Update rooms dictionary with user's room
+    rooms[request.sid] = code  # Update rooms dictionary with the user's room
     print("User joined successfully.")
     emit('chat', {'message': f'{name} has joined the chat', 'name': 'System'}, room=code)
 
@@ -44,7 +46,7 @@ def handle_message(data):
         code = rooms[request.sid]
         emit('chat', {'message': message, 'name': name}, room=code)
     else:
-        print(f"User {name} is not in a room. Ignoring message.")
+        print(f"User {name} is not in a room. Ignoring the message.")
 
 @socketio.on('disconnect')
 def handle_disconnect():
@@ -55,4 +57,10 @@ def handle_disconnect():
         emit('chat', {'message': 'A user has left the chat', 'name': 'System'}, room=code)
 
 if __name__ == '__main__':
-    socketio.run(app, debug=True)
+    monkey.patch_all()
+
+    from gunicorn import pywsgi
+
+    # Assuming your SocketIO instance is named socketio and your Flask app is named app
+    gunicorn_app = pywsgi.WSGIServer(('0.0.0.0', 5000), app, handler_class=socketio.server.GeventWebSocketHandler)
+    gunicorn_app.serve_forever()
